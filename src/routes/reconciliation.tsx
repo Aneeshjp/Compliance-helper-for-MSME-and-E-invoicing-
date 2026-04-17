@@ -43,28 +43,20 @@ function Reconciliation() {
       }
 
       if (!remoteSuccess) {
+        if (!user?.id) throw new Error("User not found");
+        const uid = user.id;
+
         // Local Simulation Logic
-        const { data: invoices } = await supabase.from("invoices").select("*").eq("user_id", user?.id);
-        const { data: gstRecords } = await supabase.from("gst_records").select("*").eq("user_id", user?.id);
+        const { data: invoices } = await supabase.from("invoices").select("*").eq("user_id", uid);
+        const { data: gstRecords } = await supabase.from("gst_records").select("*").eq("user_id", uid);
         
         const norm = (s: string | null | undefined) => (s || "").trim().toUpperCase().replace(/\s+/g, "");
         const gstByKey = new Map();
         for (const g of gstRecords || []) gstByKey.set(`${norm(g.vendor_gstin)}|${norm(g.invoice_number)}`, g);
 
-        // Clear previous results
-        await supabase.from("reconciliation_results").delete().eq("user_id", user?.id);
-
-        const updates = [];
-        const results = [];
-        const matchedGstIds = new Set();
-
-        for (const inv of invoices || []) {
-          const key = `${norm(inv.vendor_gstin)}|${norm(inv.invoice_number)}`;
-          const g = gstByKey.get(key);
-          
           if (!g) {
             updates.push({ id: inv.id, status: "missing" });
-            results.push({ user_id: user?.id, invoice_id: inv.id, match_type: "missing_in_gst" });
+            results.push({ user_id: uid, invoice_id: inv.id, match_type: "missing_in_gst" });
           } else {
             matchedGstIds.add(g.id);
             const diff: any = {};
@@ -77,18 +69,17 @@ function Reconciliation() {
             
             if (isMismatch) {
               updates.push({ id: inv.id, status: "mismatched" });
-              results.push({ user_id: user?.id, invoice_id: inv.id, gst_record_id: g.id, match_type: "mismatched", difference: diff });
+              results.push({ user_id: uid, invoice_id: inv.id, gst_record_id: g.id, match_type: "mismatched", difference: diff });
             } else {
               updates.push({ id: inv.id, status: "matched" });
-              results.push({ user_id: user?.id, invoice_id: inv.id, gst_record_id: g.id, match_type: "matched" });
+              results.push({ user_id: uid, invoice_id: inv.id, gst_record_id: g.id, match_type: "matched" });
             }
           }
-        }
         
         // Finalize missing in books
         for (const g of gstRecords || []) {
           if (!matchedGstIds.has(g.id)) {
-            results.push({ user_id: user?.id, gst_record_id: g.id, match_type: "missing_in_books" });
+            results.push({ user_id: uid, gst_record_id: g.id, match_type: "missing_in_books" });
           }
         }
 
@@ -136,7 +127,7 @@ function Reconciliation() {
       map.set(k, v);
     }
     const upserts = Array.from(map.values()).map(v => ({
-      user_id: user?.id, name: v.name, gstin: v.gstin,
+      user_id: user.id, name: v.name, gstin: v.gstin,
       total_invoices: v.total, matched_invoices: v.matched,
       mismatch_rate: 0, filing_consistency: 100, risk_score: 0, risk_level: "low"
     }));

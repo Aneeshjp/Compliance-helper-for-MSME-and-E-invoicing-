@@ -35,7 +35,9 @@ function Vendors() {
       }
 
       if (!remoteSuccess) {
-        const { data: invoices } = await supabase.from("invoices").select("*").eq("user_id", user?.id);
+        if (!user?.id) throw new Error("User not found");
+        const uid = user.id;
+        const { data: invoices } = await supabase.from("invoices").select("*").eq("user_id", uid);
         const map = new Map();
         for (const inv of invoices || []) {
           const k = inv.vendor_gstin || inv.vendor_name || "unknown";
@@ -47,7 +49,7 @@ function Vendors() {
           map.set(k, v);
         }
         const upserts = Array.from(map.values()).map(v => ({
-          user_id: user?.id, name: v.name, gstin: v.gstin,
+          user_id: uid, name: v.name, gstin: v.gstin,
           total_invoices: v.total, matched_invoices: v.matched,
           mismatch_rate: 0, filing_consistency: 100, risk_score: 0, risk_level: "low"
         }));

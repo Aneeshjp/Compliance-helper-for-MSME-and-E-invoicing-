@@ -15,6 +15,7 @@ const inr = (n: number) => "₹" + (n || 0).toLocaleString("en-IN", { maximumFra
 
 function Dashboard() {
   const { user } = useAuth();
+  const [busy, setBusy] = useState(false);
   const [stats, setStats] = useState({ total: 0, matched: 0, mismatched: 0, missing: 0, flagged: 0, totalTax: 0, totalAmount: 0 });
   const [byMonth, setByMonth] = useState<any[]>([]);
   const [byVendor, setByVendor] = useState<any[]>([]);
@@ -51,10 +52,11 @@ function Dashboard() {
   }, [user]);
 
   const reset = async () => {
+    if (!user?.id) return;
     if (!confirm("Delete all data (invoices, vendors, alerts)? This cannot be undone.")) return;
     setBusy(true);
     try {
-      const uid = user?.id;
+      const uid = user.id;
       await supabase.from("reconciliation_results").delete().eq("user_id", uid);
       await supabase.from("invoices").delete().eq("user_id", uid);
       await supabase.from("gst_records").delete().eq("user_id", uid);
