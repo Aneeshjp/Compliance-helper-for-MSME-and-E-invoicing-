@@ -40,9 +40,19 @@ function Assistant() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
         body: JSON.stringify({ messages: next }),
       });
-      if (resp.status === 429) throw new Error("Too many requests — please wait a moment.");
-      if (resp.status === 402) throw new Error("AI credits exhausted. Add credits in Workspace → Usage.");
-      if (!resp.ok || !resp.body) throw new Error("Chat failed");
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        if (resp.status === 429) throw new Error("Too many requests — please wait a moment.");
+        if (resp.status === 402) throw new Error("AI credits exhausted. Add credits in Workspace → Usage.");
+        if (data.error === "AI Config Missing") {
+          toast.warning("AI not configured. Using automated response.");
+          setMessages(m => [...m, { role: "assistant", content: "I'm currently in demo mode because the LOVABLE_API_KEY is not set. For GST compliance advice, please configure your Supabase project secrets." }]);
+          return;
+        }
+        throw new Error(data.error || "Chat failed");
+      }
+
+      if (!resp.body) throw new Error("Chat failed");
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
       let buf = ""; let done = false;

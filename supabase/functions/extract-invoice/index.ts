@@ -40,14 +40,24 @@ Deno.serve(async (req) => {
   try {
     const { imageBase64, mimeType } = await req.json();
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
+
+    if (!apiKey) {
+      return new Response(JSON.stringify({ 
+        error: "AI Config Missing", 
+        details: "LOVABLE_API_KEY is not set in Supabase project secrets." 
+      }), { 
+        status: 500, 
+        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+      });
+    }
+
     if (!imageBase64) throw new Error("imageBase64 required");
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.0-flash",
         messages: [
           { role: "system", content: "You extract structured data from Indian GST tax invoices. Return numbers without commas. GSTIN is exactly 15 characters." },
           { role: "user", content: [

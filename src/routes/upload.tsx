@@ -38,11 +38,41 @@ function UploadPage() {
         r.onload = () => res((r.result as string).split(",")[1]);
         r.onerror = rej; r.readAsDataURL(file);
       });
-      const { data, error } = await supabase.functions.invoke("extract-invoice", {
-        body: { imageBase64: base64, mimeType: file.type },
+
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/extract-invoice`;
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json", 
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` 
+        },
+        body: JSON.stringify({ imageBase64: base64, mimeType: file.type }),
       });
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        if (data.error === "AI Config Missing") {
+          toast.warning("AI not configured. Using mock data for demo.");
+          // Mock data fallback
+          setExtracted({
+            invoice_number: "INV-" + Math.floor(Math.random() * 10000),
+            invoice_date: new Date().toISOString().split("T")[0],
+            vendor_name: "Mock Vendor Ltd",
+            vendor_gstin: "27AAACV1234A1Z1",
+            taxable_amount: 1500,
+            cgst: 135,
+            sgst: 135,
+            igst: 0,
+            total_amount: 1770
+          });
+          setIssues(["mock_extraction_demo"]);
+          setConfidence(0.95);
+          return;
+        }
+        throw new Error(data.error || "OCR failed");
+      }
+      
       setExtracted(data.extracted); setIssues(data.validation_issues || []); setConfidence(data.confidence_score || 0);
       toast.success("Invoice data extracted!");
     } catch (e: any) {

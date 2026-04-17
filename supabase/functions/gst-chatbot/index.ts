@@ -16,13 +16,22 @@ Deno.serve(async (req) => {
   try {
     const { messages } = await req.json();
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
+    
+    if (!apiKey) {
+      return new Response(JSON.stringify({ 
+        error: "AI Config Missing", 
+        details: "LOVABLE_API_KEY is not set." 
+      }), { 
+        status: 500, 
+        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+      });
+    }
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.0-flash",
         messages: [{ role: "system", content: SYSTEM }, ...messages],
         stream: true,
       }),
