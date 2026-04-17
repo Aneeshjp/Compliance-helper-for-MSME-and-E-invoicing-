@@ -14,16 +14,340 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      alerts: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          related_invoice_id: string | null
+          severity: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          related_invoice_id?: string | null
+          severity?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          related_invoice_id?: string | null
+          severity?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_related_invoice_id_fkey"
+            columns: ["related_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gst_records: {
+        Row: {
+          cgst: number
+          created_at: string
+          filing_period: string | null
+          id: string
+          igst: number
+          invoice_date: string | null
+          invoice_number: string
+          sgst: number
+          source: string
+          taxable_amount: number
+          total_amount: number
+          user_id: string
+          vendor_gstin: string
+          vendor_name: string | null
+        }
+        Insert: {
+          cgst?: number
+          created_at?: string
+          filing_period?: string | null
+          id?: string
+          igst?: number
+          invoice_date?: string | null
+          invoice_number: string
+          sgst?: number
+          source?: string
+          taxable_amount?: number
+          total_amount?: number
+          user_id: string
+          vendor_gstin: string
+          vendor_name?: string | null
+        }
+        Update: {
+          cgst?: number
+          created_at?: string
+          filing_period?: string | null
+          id?: string
+          igst?: number
+          invoice_date?: string | null
+          invoice_number?: string
+          sgst?: number
+          source?: string
+          taxable_amount?: number
+          total_amount?: number
+          user_id?: string
+          vendor_gstin?: string
+          vendor_name?: string | null
+        }
+        Relationships: []
+      }
+      invoices: {
+        Row: {
+          buyer_gstin: string | null
+          cgst: number
+          confidence_score: number | null
+          created_at: string
+          file_path: string | null
+          fraud_flags: Json | null
+          id: string
+          igst: number
+          invoice_date: string | null
+          invoice_number: string | null
+          invoice_type: string
+          raw_ocr_text: string | null
+          sgst: number
+          status: string
+          taxable_amount: number
+          total_amount: number
+          updated_at: string
+          user_id: string
+          validation_issues: Json | null
+          vendor_gstin: string | null
+          vendor_id: string | null
+          vendor_name: string | null
+        }
+        Insert: {
+          buyer_gstin?: string | null
+          cgst?: number
+          confidence_score?: number | null
+          created_at?: string
+          file_path?: string | null
+          fraud_flags?: Json | null
+          id?: string
+          igst?: number
+          invoice_date?: string | null
+          invoice_number?: string | null
+          invoice_type?: string
+          raw_ocr_text?: string | null
+          sgst?: number
+          status?: string
+          taxable_amount?: number
+          total_amount?: number
+          updated_at?: string
+          user_id: string
+          validation_issues?: Json | null
+          vendor_gstin?: string | null
+          vendor_id?: string | null
+          vendor_name?: string | null
+        }
+        Update: {
+          buyer_gstin?: string | null
+          cgst?: number
+          confidence_score?: number | null
+          created_at?: string
+          file_path?: string | null
+          fraud_flags?: Json | null
+          id?: string
+          igst?: number
+          invoice_date?: string | null
+          invoice_number?: string | null
+          invoice_type?: string
+          raw_ocr_text?: string | null
+          sgst?: number
+          status?: string
+          taxable_amount?: number
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+          validation_issues?: Json | null
+          vendor_gstin?: string | null
+          vendor_id?: string | null
+          vendor_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          business_name: string | null
+          created_at: string
+          email: string | null
+          gstin: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          business_name?: string | null
+          created_at?: string
+          email?: string | null
+          gstin?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          business_name?: string | null
+          created_at?: string
+          email?: string | null
+          gstin?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reconciliation_results: {
+        Row: {
+          created_at: string
+          difference: Json | null
+          gst_record_id: string | null
+          id: string
+          invoice_id: string | null
+          match_type: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          difference?: Json | null
+          gst_record_id?: string | null
+          id?: string
+          invoice_id?: string | null
+          match_type: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          difference?: Json | null
+          gst_record_id?: string | null
+          id?: string
+          invoice_id?: string | null
+          match_type?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reconciliation_results_gst_record_id_fkey"
+            columns: ["gst_record_id"]
+            isOneToOne: false
+            referencedRelation: "gst_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reconciliation_results_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vendors: {
+        Row: {
+          created_at: string
+          filing_consistency: number
+          gstin: string | null
+          id: string
+          matched_invoices: number
+          mismatch_rate: number
+          name: string
+          risk_level: string
+          risk_score: number
+          total_invoices: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          filing_consistency?: number
+          gstin?: string | null
+          id?: string
+          matched_invoices?: number
+          mismatch_rate?: number
+          name: string
+          risk_level?: string
+          risk_score?: number
+          total_invoices?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          filing_consistency?: number
+          gstin?: string | null
+          id?: string
+          matched_invoices?: number
+          mismatch_rate?: number
+          name?: string
+          risk_level?: string
+          risk_score?: number
+          total_invoices?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +474,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
